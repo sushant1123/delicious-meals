@@ -3,20 +3,34 @@ import React, { useReducer } from "react";
 import CartContext from "./cart-context";
 
 const defaultCartState = {
-	items: [
-		{ id: 1, amount: 2 },
-		{ id: 2, amount: 4 },
-	],
+	items: [],
 	totalAmount: 0,
 };
 
 const cartReducer = (state, action) => {
 	switch (action.type) {
 		case "ADD":
-			const updatedItems = state.items.concat(action.payload);
+			const existingCartItemIndex = state.items.findIndex((item) => item.id === action.payload.id);
+
+			const existingCartItem = state.items[existingCartItemIndex];
+			let updatedItem;
+			let updatedItems;
+
+			if (existingCartItem?.id) {
+				updatedItem = {
+					...existingCartItem,
+					amount: existingCartItem.amount + action.payload.amount,
+				};
+
+				updatedItems = [...state.items];
+				updatedItems[existingCartItemIndex] = updatedItem;
+			} else {
+				updatedItem = { ...action.payload };
+				updatedItems = state.items.concat(updatedItem);
+			}
+
 			const updatedAmount = state.totalAmount + action.payload.amount * action.payload.price;
-			state = { ...state, items: updatedItems, totalAmount: updatedAmount };
-			break;
+			return { ...state, items: updatedItems, totalAmount: updatedAmount };
 
 		case "REMOVE":
 			return { ...state, items: state.items.filter((item) => item.id !== action.payload) };
